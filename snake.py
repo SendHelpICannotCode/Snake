@@ -4,23 +4,28 @@ import random
 class SnakeGame:
     def __init__(self, root):
         self.root = root
-        self.root.title("Snake Spiel")
-        self.root.geometry("650x400")  # Setze die Anfangsgröße des Fensters
+        self.root.title("Snake")
+        self.root.geometry("525x400")  # Setze die Anfangsgröße des Fensters
 
-        self.game_loop_id = None  # Initialisiere game_loop_id
+        # Deaktiviere das Ändern der Fenstergröße
+        self.root.resizable(False, False)
 
         # Canvas zur Anzeige des Spiels
         self.canvas = tk.Canvas(root, width=400, height=400, bg="black")
         self.canvas.pack(side=tk.LEFT)
 
+        # Container für Knopf und Label
+        button_label_frame = tk.Frame(root)
+        button_label_frame.pack(side=tk.RIGHT, padx=20)
+
         # Anzeige für die Anzahl der gefutterten Äpfel
-        self.score_label = tk.Label(root, text="Äpfel: 0", font=("Helvetica", 16))
-        self.score_label.pack(side=tk.RIGHT, padx=20)
+        self.score_label = tk.Label(button_label_frame, text="Äpfel: 0", font=("Helvetica", 16))
+        self.score_label.pack()
 
         # Neustart-Knopf
-        self.restart_button = tk.Button(root, text="Neustart", command=self.restart_game)
+        self.restart_button = tk.Button(button_label_frame, text="Neustart", command=self.restart_game)
         self.restart_button.config(state=tk.DISABLED)
-        self.restart_button.pack(side=tk.RIGHT, padx=20, pady=10)
+        self.restart_button.pack(pady=10)
 
         # Initialisierung der Schlange, Richtung, Futter und Event-Bindungen
         self.snake = [(100, 100), (90, 100), (80, 100)]
@@ -42,10 +47,6 @@ class SnakeGame:
 
     def restart_game(self):
         if self.game_over:
-            # Beende die aktuelle game_loop-Funktion (falls vorhanden)
-            if self.game_loop_id is not None:
-                self.root.after_cancel(self.game_loop_id)
-
             # Neustart des Spiels
             self.canvas.delete("all")  # Lösche das aktuelle Spielbrett
             self.restart_button.config(state=tk.DISABLED) # Deaktiviere den Neustartknopf
@@ -61,8 +62,7 @@ class SnakeGame:
 
     def spawn_food(self):
         # Zufällige Position für das Futter
-        x = random.randint(0, 39) * 10
-        y = random.randint(0, 39) * 10
+        x, y = self.random_coords()
         self.canvas.create_rectangle(x, y, x + 10, y + 10, fill="red")
         return x, y
 
@@ -86,6 +86,15 @@ class SnakeGame:
         # Überprüfe auf Kollisionen (Rand des Canvas oder sich selbst)
         if x < 0 or x >= 400 or y < 0 or y >= 400 or (x, y) in self.snake:
             self.game_over = True
+    
+    def random_coords(self):
+        while True:
+            x = random.randint(0, 39) * 10
+            y = random.randint(0, 39) * 10
+
+            # Überprüfe, ob das Futter nicht in der Schlange liegt
+            if x >= 110 and x < 390 and y >= 110 and y < 390 and (x, y) not in self.snake:
+                return x, y
 
     def game_loop(self):
         if not self.game_over:
